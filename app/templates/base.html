@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}{{ APP_NOME }}{% endblock %} - {{ APP_NOME }}</title>
+  <link href="/static/vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="/static/style.css" rel="stylesheet">
+</head>
+<body>
+<div class="d-flex">
+  <nav class="sidebar d-flex flex-column">
+    <a href="/" class="sidebar-marca">Adm-Financeiro</a>
+    <div class="sidebar-usuario">
+      <i class="bi bi-person-circle"></i>
+      <small>Logado como:</small>
+      <strong>{{ (usuario or '')|upper }}</strong>
+      <span class="badge text-bg-primary">Administrador</span>
+      <a href="/logout" class="btn btn-outline-light btn-sm w-100 mt-2"><i class="bi bi-box-arrow-right"></i> Sair</a>
+    </div>
+
+    {% macro item(url, icone, texto) -%}
+      <a href="{{ url }}" class="sidebar-link {% if rota == url or (url != '/' and rota.startswith(url ~ '/')) or (url != '/' and rota == url) %}ativo{% endif %}">
+        <i class="bi {{ icone }}"></i> {{ texto }}
+      </a>
+    {%- endmacro %}
+
+    {{ item('/', 'bi-speedometer2', 'Dashboard') }}
+
+    <div class="sidebar-secao">Nota Fiscal</div>
+    {{ item('/notas', 'bi-file-earmark-arrow-up', 'Lançar Nota Fiscal (IA)') }}
+
+    <div class="sidebar-secao">Pessoas</div>
+    {{ item('/pessoas/fornecedor', 'bi-truck', 'Fornecedores') }}
+    {{ item('/pessoas/cliente', 'bi-people', 'Clientes') }}
+    {{ item('/pessoas/faturado', 'bi-person-vcard', 'Faturados') }}
+
+    <div class="sidebar-secao">Classificação</div>
+    {{ item('/classificacao/despesa', 'bi-arrow-down-circle', 'Tipos de Despesa') }}
+    {{ item('/classificacao/receita', 'bi-arrow-up-circle', 'Tipos de Receita') }}
+
+    <div class="sidebar-secao">Contas</div>
+    {{ item('/contas/pagar', 'bi-cash-coin', 'Contas a Pagar') }}
+    {{ item('/contas/receber', 'bi-wallet2', 'Contas a Receber') }}
+
+    <div class="sidebar-versao mt-auto">
+      <i class="bi bi-github"></i> Versão
+      {% if versao.url %}<a href="{{ versao.url }}" target="_blank" rel="noopener">{{ versao.sha_curto }}</a>{% else %}{{ versao.sha_curto }}{% endif %}
+    </div>
+  </nav>
+
+  <main class="conteudo flex-grow-1">
+    {% if flash %}
+      <div class="alert alert-{{ flash.categoria }} alert-dismissible fade show" role="alert">
+        {{ flash.mensagem }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+      </div>
+    {% endif %}
+    {% block conteudo %}{% endblock %}
+  </main>
+</div>
+<script src="/static/vendor/bootstrap/bootstrap.bundle.min.js"></script>
+<script src="/static/app.js"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

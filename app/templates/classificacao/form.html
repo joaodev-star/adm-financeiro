@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% set editando = c is not none and c.id %}
+{% block titulo %}{{ 'Editar' if editando else 'Novo' }} {{ cfg.singular }}{% endblock %}
+{% block conteudo %}
+<div class="d-flex justify-content-between align-items-start">
+  <h1 class="titulo-pagina">{{ 'Editar' if editando else 'Novo' }} {{ cfg.singular }}</h1>
+  <a href="{{ voltar or '/classificacao/' ~ cfg.slug }}" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Voltar</a>
+</div>
+
+<div class="card">
+  <div class="card-header">Formulário de {{ cfg.singular }}{% if editando %} — ID {{ c.id }}{% endif %}</div>
+  <div class="card-body">
+    {% if erro %}<div class="alert alert-danger">{{ erro }}</div>{% endif %}
+    <form method="post" action="{{ '/classificacao/' ~ cfg.slug ~ ('/' ~ c.id ~ '/editar' if editando else '/novo') }}">
+      <input type="hidden" name="status" value="{{ c.status if editando else 'ATIVO' }}">
+      <input type="hidden" name="voltar" value="{{ voltar or '' }}">
+      <div class="row g-3">
+        <div class="col-md-8">
+          <label class="form-label" for="descricao">Descrição *</label>
+          <input class="form-control" id="descricao" name="descricao" value="{{ c.descricao if c else '' }}" required maxlength="150">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Tipo</label>
+          <input class="form-control" value="{{ cfg.tipo }}" disabled>
+        </div>
+      </div>
+      <div class="mt-4">
+        <button class="btn btn-primary"><i class="bi bi-floppy"></i> Salvar</button>
+        <a href="{{ voltar or '/classificacao/' ~ cfg.slug }}" class="btn btn-secondary"><i class="bi bi-x-lg"></i> Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

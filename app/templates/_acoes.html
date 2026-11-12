@@ -1,0 +1,17 @@
+{# Ações da linha: Editar / Excluir (lógico) ou Reativar. Espera: url_base, registro, voltar, nome #}
+<a href="{{ url_base }}/{{ registro.id }}/editar?voltar={{ voltar|urlencode }}" class="btn btn-outline-primary btn-acao" title="Editar">
+  <i class="bi bi-pencil-square"></i> Editar
+</a>
+{% if registro.status == 'ATIVO' %}
+  <form method="post" action="{{ url_base }}/{{ registro.id }}/inativar" class="d-inline"
+        data-confirmar="Excluir (inativar) {{ nome }}? O registro não será apagado, apenas ficará INATIVO.">
+    <input type="hidden" name="voltar" value="{{ voltar }}">
+    <button class="btn btn-outline-danger btn-acao" title="Excluir (inativar)"><i class="bi bi-trash"></i> Excluir</button>
+  </form>
+{% else %}
+  <form method="post" action="{{ url_base }}/{{ registro.id }}/reativar" class="d-inline"
+        data-confirmar="Reativar {{ nome }}?">
+    <input type="hidden" name="voltar" value="{{ voltar }}">
+    <button class="btn btn-outline-success btn-acao" title="Reativar"><i class="bi bi-arrow-counterclockwise"></i> Reativar</button>
+  </form>
+{% endif %}

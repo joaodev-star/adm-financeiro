@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block titulo %}Lançar Nota Fiscal{% endblock %}
+{% block conteudo %}
+<h1 class="titulo-pagina"><i class="bi bi-file-earmark-arrow-up"></i> Lançar Nota Fiscal</h1>
+
+{% if erro %}<div class="alert alert-danger">{{ erro }}</div>{% endif %}
+
+<div class="card">
+  <div class="card-header">1ª Etapa — Extração dos dados da nota fiscal (PDF) com IA</div>
+  <div class="card-body">
+    <p class="text-muted">Envie o PDF da nota fiscal (DANFE). O Gemini extrai fornecedor, faturado, número da nota,
+      data de emissão, produtos, parcelas, valor total e a classificação da despesa. Em seguida o sistema consulta o banco
+      e mostra se cada item <strong>EXISTE</strong> ou <strong>NÃO EXISTE</strong>.</p>
+    <form method="post" action="/notas/extrair" enctype="multipart/form-data" data-carregando="Extraindo dados com IA...">
+      <div class="row g-2">
+        <div class="col-md">
+          <input class="form-control form-control-lg" type="file" name="arquivo" accept="application/pdf,.pdf" required>
+        </div>
+        <div class="col-md-auto">
+          <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-stars"></i> Extrair e analisar</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <a class="text-decoration-none" data-bs-toggle="collapse" href="#colarJson" role="button">
+      <i class="bi bi-braces"></i> Alternativa: colar o JSON já extraído (teste sem IA)
+    </a>
+  </div>
+  <div id="colarJson" class="collapse {% if json_texto %}show{% endif %}">
+    <div class="card-body">
+      <form method="post" action="/notas/analisar-json">
+        <textarea name="json_texto" class="form-control font-monospace" rows="14" placeholder='{"fornecedor": {...}, "faturado": {...}, ...}'>{{ json_texto }}</textarea>
+        <div class="mt-2 d-flex gap-2">
+          <button class="btn btn-outline-primary"><i class="bi bi-search"></i> Analisar JSON</button>
+          <button type="button" class="btn btn-outline-secondary" id="btnExemplo">Preencher com exemplo</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById("btnExemplo").addEventListener("click", () => {
+  const exemplo = {
+    fornecedor: { razao_social: "IGUAÇU MAQUINAS LTDA", fantasia: "IGUAÇU MÁQUINAS", cnpj: "11.111.111/0001-00" },
+    faturado: { nome_completo: "BELTRANO DA SILVA", cpf: "999.999.999-99" },
+    numero_nota_fiscal: "000123456",
+    data_emissao: "2026-10-20",
+    descricao_produtos: ["FILTRO DE ÓLEO HIDRÁULICO", "CORREIA DENTADA TRATOR"],
+    quantidade_parcelas: 2,
+    parcelas: [
+      { numero: 1, data_vencimento: "2026-11-20", valor: 765.00 },
+      { numero: 2, data_vencimento: "2026-12-20", valor: 765.00 }
+    ],
+    valor_total: 1530.00,
+    classificacoes_despesa: ["MANUTENÇÃO E OPERAÇÃO"]
+  };
+  document.querySelector("textarea[name=json_texto]").value = JSON.stringify(exemplo, null, 2);
+});
+</script>
+{% endblock %}

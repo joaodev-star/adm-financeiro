@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% set editando = p is not none and p.id %}
+{% block titulo %}{{ 'Editar' if editando else 'Novo' }} {{ cfg.singular }}{% endblock %}
+{% block conteudo %}
+<div class="d-flex justify-content-between align-items-start">
+  <h1 class="titulo-pagina">{{ 'Editar' if editando else 'Novo' }} {{ cfg.singular }}</h1>
+  <a href="{{ voltar or '/pessoas/' ~ cfg.slug }}" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Voltar</a>
+</div>
+
+<div class="card">
+  <div class="card-header">Formulário de {{ cfg.singular }}{% if editando %} — ID {{ p.id }}{% endif %}</div>
+  <div class="card-body">
+    {% if erro %}<div class="alert alert-danger">{{ erro }}</div>{% endif %}
+    <form method="post" action="{{ '/pessoas/' ~ cfg.slug ~ ('/' ~ p.id ~ '/editar' if editando else '/novo') }}">
+      {# STATUS oculto: no CREATE é sempre ATIVO; no UPDATE não é alterado #}
+      <input type="hidden" name="status" value="{{ p.status if editando else 'ATIVO' }}">
+      <input type="hidden" name="voltar" value="{{ voltar or '' }}">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label" for="razao_social">Razão Social / Nome *</label>
+          <input class="form-control" id="razao_social" name="razao_social" value="{{ p.razao_social if p else '' }}" required maxlength="200">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="fantasia">Nome Fantasia</label>
+          <input class="form-control" id="fantasia" name="fantasia" value="{{ (p.fantasia or '') if p else '' }}" maxlength="200">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="documento">CPF / CNPJ</label>
+          <input class="form-control" id="documento" name="documento" data-mascara="documento"
+                 value="{{ (p.documento|documento) if p and p.documento else '' }}" placeholder="000.000.000-00 ou 00.000.000/0000-00">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="email">E-mail</label>
+          <input class="form-control" id="email" name="email" type="email" value="{{ (p.email or '') if p else '' }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="telefone">Telefone</label>
+          <input class="form-control" id="telefone" name="telefone" value="{{ (p.telefone or '') if p else '' }}">
+        </div>
+      </div>
+      <div class="mt-4">
+        <button class="btn btn-primary"><i class="bi bi-floppy"></i> Salvar</button>
+        <a href="{{ voltar or '/pessoas/' ~ cfg.slug }}" class="btn btn-secondary"><i class="bi bi-x-lg"></i> Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

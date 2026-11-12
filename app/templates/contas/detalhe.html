@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block titulo %}{{ cfg.singular }} {{ m.id }}{% endblock %}
+{% block conteudo %}
+<div class="d-flex justify-content-between align-items-start">
+  <h1 class="titulo-pagina">{{ cfg.singular }} — ID {{ m.id }}
+    <span class="badge fs-6 text-bg-{{ 'success' if m.status == 'ATIVO' else 'secondary' }}">{{ m.status }}</span>
+  </h1>
+  <div>
+    <a href="/contas/{{ cfg.slug }}/{{ m.id }}/editar?voltar={{ ('/contas/' ~ cfg.slug ~ '/' ~ m.id)|urlencode }}" class="btn btn-primary"><i class="bi bi-pencil-square"></i> Editar</a>
+    <a href="{{ voltar }}" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Voltar</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">MOVIMENTOCONTAS</div>
+  <div class="card-body">
+    <dl class="row mb-0">
+      <dt class="col-sm-3">Tipo</dt><dd class="col-sm-9">{{ m.tipo }}</dd>
+      <dt class="col-sm-3">{{ cfg.pessoa_rotulo }}</dt>
+      <dd class="col-sm-9">{{ m.pessoa.razao_social }} {% if m.pessoa.documento %}— {{ m.pessoa.documento|rotulo_doc }}: {{ m.pessoa.documento|documento }}{% endif %} (ID {{ m.pessoa.id }})</dd>
+      <dt class="col-sm-3">Faturado</dt>
+      <dd class="col-sm-9">{% if m.faturado %}{{ m.faturado.razao_social }} {% if m.faturado.documento %}— {{ m.faturado.documento|rotulo_doc }}: {{ m.faturado.documento|documento }}{% endif %} (ID {{ m.faturado.id }}){% else %}-{% endif %}</dd>
+      <dt class="col-sm-3">Nº Nota Fiscal</dt><dd class="col-sm-9">{{ m.numero_nota_fiscal or '-' }}</dd>
+      <dt class="col-sm-3">Data de Emissão</dt><dd class="col-sm-9">{{ m.data_emissao|data_br }}</dd>
+      <dt class="col-sm-3">Valor Total</dt><dd class="col-sm-9 fw-semibold">{{ m.valor_total|moeda }}</dd>
+      <dt class="col-sm-3">Classificação</dt>
+      <dd class="col-sm-9">{% for c in m.classificacoes %}<span class="badge text-bg-light border">{{ c.descricao }} (ID {{ c.id }})</span> {% endfor %}</dd>
+      <dt class="col-sm-3">Descrição</dt><dd class="col-sm-9">{{ m.descricao or '-' }}</dd>
+      <dt class="col-sm-3">Origem</dt><dd class="col-sm-9">{{ m.origem.replace('_', ' ') }}</dd>
+    </dl>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">PARCELACONTAS</div>
+  <div class="card-body">
+    <table class="table mb-0">
+      <thead><tr><th>ID</th><th>Identificação</th><th>Vencimento</th><th class="text-end">Valor</th><th>Situação</th></tr></thead>
+      <tbody>
+      {% for p in m.parcelas %}
+        <tr><td>{{ p.id }}</td><td>{{ p.identificacao }}</td><td>{{ p.data_vencimento|data_br }}</td>
+            <td class="text-end">{{ p.valor_parcela|moeda }}</td><td>{{ p.situacao }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

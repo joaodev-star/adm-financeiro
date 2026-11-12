@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login - {{ APP_NOME }}</title>
+  <link href="/static/vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="/static/style.css" rel="stylesheet">
+</head>
+<body>
+<div class="login-fundo">
+  <div class="login-caixa">
+    <div class="card shadow">
+      <div class="card-body p-4">
+        <h4 class="text-center mb-1"><i class="bi bi-bank"></i> {{ APP_NOME }}</h4>
+        <p class="text-center text-muted mb-4">Acesse com seu usuário e senha</p>
+        {% if erro %}<div class="alert alert-danger py-2">{{ erro }}</div>{% endif %}
+        <form method="post" action="/login">
+          <div class="mb-3">
+            <label class="form-label" for="usuario">Usuário</label>
+            <input class="form-control" id="usuario" name="usuario" required autofocus>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="senha">Senha</label>
+            <input class="form-control" id="senha" name="senha" type="password" required>
+          </div>
+          <button class="btn btn-primary w-100"><i class="bi bi-box-arrow-in-right"></i> Entrar</button>
+        </form>
+      </div>
+      <div class="card-footer text-center small text-muted">
+        <i class="bi bi-github"></i> Última atualização: <code>{{ versao.sha_curto }}</code>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

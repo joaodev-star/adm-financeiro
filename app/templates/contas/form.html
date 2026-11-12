@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% set editando = m is not none %}
+{% block titulo %}{{ 'Editar' if editando else 'Registrar' }} {{ cfg.singular }}{% endblock %}
+{% block conteudo %}
+<div class="d-flex justify-content-between align-items-start">
+  <h1 class="titulo-pagina">{{ 'Editar' if editando else 'Registrar' }} {{ cfg.singular }}</h1>
+  <a href="{{ voltar or '/contas/' ~ cfg.slug }}" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Voltar</a>
+</div>
+
+{% if erros %}
+<div class="alert alert-danger"><ul class="mb-0">{% for e in erros %}<li>{{ e }}</li>{% endfor %}</ul></div>
+{% endif %}
+
+<form method="post" action="{{ '/contas/' ~ cfg.slug ~ ('/' ~ m.id ~ '/editar' if editando else '/novo') }}">
+  <input type="hidden" name="status" value="{{ m.status if editando else 'ATIVO' }}">
+  <input type="hidden" name="voltar" value="{{ voltar or '' }}">
+
+  <div class="card">
+    <div class="card-header">Dados do registro{% if editando %} — ID {{ m.id }}{% endif %}</div>
+    <div class="card-body row g-3">
+      <div class="col-md-6">
+        <label class="form-label" for="pessoa_id">{{ cfg.pessoa_rotulo }} *</label>
+        <select class="form-select" id="pessoa_id" name="pessoa_id" required>
+          <option value="">Selecione...</option>
+          {% for p in pessoas %}
+            <option value="{{ p.id }}" {% if f.pessoa_id == p.id %}selected{% endif %}>
+              {{ p.razao_social }}{% if p.documento %} — {{ p.documento|documento }}{% endif %}{% if p.status != 'ATIVO' %} (INATIVO){% endif %}
+            </option>
+          {% endfor %}
+        </select>
+        {% if not pessoas %}<div class="form-text text-danger">Cadastre um {{ cfg.pessoa_rotulo|lower }} primeiro.</div>{% endif %}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label" for="faturado_id">Faturado</label>
+        <select class="form-select" id="faturado_id" name="faturado_id">
+          <option value="">(nenhum)</option>
+          {% for p in faturados %}
+            <option value="{{ p.id }}" {% if f.faturado_id == p.id %}selected{% endif %}>
+              {{ p.razao_social }}{% if p.documento %} — {{ p.documento|documento }}{% endif %}{% if p.status != 'ATIVO' %} (INATIVO){% endif %}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label" for="numero_nota_fiscal">Nº Nota Fiscal / Documento</label>
+        <input class="form-control" id="numero_nota_fiscal" name="numero_nota_fiscal" value="{{ f.numero_nota_fiscal or '' }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label" for="data_emissao">Data de Emissão *</label>
+        <input class="form-control" id="data_emissao" name="data_emissao" type="date" value="{{ f.data_emissao or '' }}" required>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label" for="valor_total">Valor Total (R$) *</label>
+        <input class="form-control" id="valor_total" name="valor_total" type="number" step="0.01" min="0.01" value="{{ f.valor_total or '' }}" required>
+      </div>
+      <div class="col-12">
+        <label class="form-label" for="descricao">Descrição</label>
+        <textarea class="form-control" id="descricao" name="descricao" rows="2">{{ f.descricao or '' }}</textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">{{ cfg.class_rotulo }} * <small class="text-muted">(selecione uma ou mais)</small></div>
+    <div class="card-body">
+      <div class="row">
+        {% for c in classificacoes %}
+        <div class="col-md-4">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="classificacao_ids" value="{{ c.id }}" id="class{{ c.id }}"
+                   {% if c.id in f.classificacao_ids %}checked{% endif %}>
+            <label class="form-check-label" for="class{{ c.id }}">{{ c.descricao }}{% if c.status != 'ATIVO' %} (INATIVO){% endif %}</label>
+          </div>
+        </div>
+        {% else %}
+        <div class="text-danger">Nenhuma classificação ativa cadastrada.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span>Parcelas * <small class="text-muted">(uma ou mais, com vencimentos distintos)</small></span>
+      <div>
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="btnDividir"><i class="bi bi-calculator"></i> Dividir total igualmente</button>
+        <button type="button" class="btn btn-outline-primary btn-sm" id="btnAddParcela"><i class="bi bi-plus-lg"></i> Adicionar parcela</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <table class="table align-middle mb-2">
+        <thead><tr><th style="width:120px">Identificação</th><th>Vencimento</th><th>Valor (R$)</th><th style="width:60px"></th></tr></thead>
+        <tbody id="parcelas">
+        {% for p in f.parcelas %}
+          <tr>
+            <td class="ident"></td>
+            <td><input class="form-control" type="date" name="parcela_vencimento" value="{{ p.data_vencimento or '' }}" required></td>
+            <td><input class="form-control valor-parcela" type="number" step="0.01" min="0.01" name="parcela_valor" value="{{ p.valor or '' }}" required></td>
+            <td><button type="button" class="btn btn-outline-danger btn-sm remover" title="Remover"><i class="bi bi-x-lg"></i></button></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      <div class="small">Soma das parcelas: <strong id="somaParcelas">R$ 0,00</strong> <span id="avisoSoma" class="text-danger"></span></div>
+    </div>
+  </div>
+
+  <div class="mb-4">
+    <button class="btn btn-primary"><i class="bi bi-floppy"></i> Salvar</button>
+    <a href="{{ voltar or '/contas/' ~ cfg.slug }}" class="btn btn-secondary"><i class="bi bi-x-lg"></i> Cancelar</a>
+  </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(() => {
+  const corpo = document.getElementById("parcelas");
+  const total = document.getElementById("valor_total");
+  const brl = (v) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+  function atualizar() {
+    const linhas = Array.from(corpo.rows);
+    linhas.forEach((tr, i) => {
+      tr.querySelector(".ident").textContent = linhas.length === 1 ? "ÚNICA" : `${i + 1}/${linhas.length}`;
+      tr.querySelector(".remover").disabled = linhas.length === 1;
+    });
+    const soma = linhas.reduce((s, tr) => s + (parseFloat(tr.querySelector(".valor-parcela").value) || 0), 0);
+    document.getElementById("somaParcelas").textContent = brl(soma);
+    const t = parseFloat(total.value) || 0;
+    document.getElementById("avisoSoma").textContent =
+      t && Math.abs(soma - t) > 0.009 ? `(diferente do valor total ${brl(t)})` : "";
+  }
+
+  document.getElementById("btnAddParcela").addEventListener("click", () => {
+    const nova = corpo.rows[corpo.rows.length - 1].cloneNode(true);
+    nova.querySelectorAll("input").forEach((i) => (i.value = ""));
+    corpo.appendChild(nova);
+    atualizar();
+  });
+
+  document.getElementById("btnDividir").addEventListener("click", () => {
+    const t = parseFloat(total.value) || 0;
+    const n = corpo.rows.length;
+    if (!t) return alert("Informe o valor total primeiro.");
+    const base = Math.floor((t / n) * 100) / 100;
+    Array.from(corpo.rows).forEach((tr, i) => {
+      const v = i === n - 1 ? (t - base * (n - 1)) : base;
+      tr.querySelector(".valor-parcela").value = v.toFixed(2);
+    });
+    atualizar();
+  });
+
+  corpo.addEventListener("click", (e) => {
+    const btn = e.target.closest(".remover");
+    if (btn && corpo.rows.length > 1) { btn.closest("tr").remove(); atualizar(); }
+  });
+  corpo.addEventListener("input", atualizar);
+  total.addEventListener("input", atualizar);
+  atualizar();
+})();
+</script>
+{% endblock %}

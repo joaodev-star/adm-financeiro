@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block titulo %}Registro lançado{% endblock %}
+{% macro acao_badge(acao) -%}
+  {% if acao == 'CRIADO' %}<span class="badge text-bg-primary">CRIADO</span>
+  {% elif acao == 'REATIVADO' %}<span class="badge text-bg-warning">REATIVADO</span>
+  {% else %}<span class="badge text-bg-secondary">JÁ EXISTIA</span>{% endif %}
+{%- endmacro %}
+{% block conteudo %}
+<div class="alert alert-success fs-5">
+  <i class="bi bi-check-circle-fill"></i>
+  <strong>Registro lançado com sucesso!</strong> Movimento ID {{ r.movimento_id }}
+  {% if r.numero_nota_fiscal %}— Nota {{ r.numero_nota_fiscal }}{% endif %} — {{ r.valor_total|moeda }}
+</div>
+
+<div class="card">
+  <div class="card-header">Entidades afetadas</div>
+  <div class="card-body">
+    <table class="table align-middle mb-0">
+      <thead><tr><th>Entidade</th><th>Tipo</th><th>Descrição</th><th>ID</th><th>Ação</th></tr></thead>
+      <tbody>
+        <tr><td>MOVIMENTOCONTAS</td><td>APAGAR</td><td>Nota {{ r.numero_nota_fiscal or '-' }}</td><td>{{ r.movimento_id }}</td><td><span class="badge text-bg-primary">CRIADO</span></td></tr>
+        {% for p in r.parcelas %}
+        <tr><td>PARCELACONTAS</td><td>{{ p.identificacao }}</td><td>Venc. {{ p.data_vencimento|data_br }} — {{ p.valor|moeda }}</td><td>{{ p.id }}</td><td><span class="badge text-bg-primary">CRIADO</span></td></tr>
+        {% endfor %}
+        {% for c in r.despesas %}
+        <tr><td>CLASSIFICACAO</td><td>DESPESA</td><td>{{ c.descricao }}</td><td>{{ c.id }}</td><td>{{ acao_badge(c.acao) }}</td></tr>
+        {% endfor %}
+        <tr><td>PESSOAS</td><td>FORNECEDOR</td><td>{{ r.fornecedor.razao_social }}</td><td>{{ r.fornecedor.id }}</td><td>{{ acao_badge(r.fornecedor.acao) }}</td></tr>
+        <tr><td>PESSOAS</td><td>FATURADO</td><td>{{ r.faturado.razao_social }}</td><td>{{ r.faturado.id }}</td><td>{{ acao_badge(r.faturado.acao) }}</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<a href="/contas/pagar/{{ r.movimento_id }}" class="btn btn-primary"><i class="bi bi-eye"></i> Ver conta a pagar</a>
+<a href="/notas" class="btn btn-outline-primary"><i class="bi bi-file-earmark-arrow-up"></i> Lançar outra nota</a>
+{% endblock %}

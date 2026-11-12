@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block titulo %}{{ cfg.plural }}{% endblock %}
+{% block conteudo %}
+<h1 class="titulo-pagina"><i class="bi {{ cfg.icone }}"></i> {{ cfg.plural }}</h1>
+
+{% with base_url='/pessoas/' ~ cfg.slug, titulo_busca=cfg.plural,
+        placeholder='Buscar por nome, fantasia, CPF/CNPJ, e-mail ou telefone...' %}
+  {% include "_busca.html" %}
+{% endwith %}
+
+<div class="card">
+  <div class="card-header d-flex justify-content-between">
+    <span>Lista de {{ cfg.plural }}</span>
+    {% if registros is not none %}<span class="text-muted small">{{ registros|length }} registro(s)</span>{% endif %}
+  </div>
+  <div class="card-body table-responsive">
+    <table class="table table-hover align-middle ordenavel mb-0">
+      <thead>
+        <tr>
+          <th data-ordenar="numero">ID</th>
+          <th data-ordenar="texto">Razão Social / Nome</th>
+          <th data-ordenar="texto">Fantasia</th>
+          <th data-ordenar="texto">CPF/CNPJ</th>
+          <th data-ordenar="texto">E-mail</th>
+          <th data-ordenar="texto">Telefone</th>
+          <th data-ordenar="texto">Status</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% if registros is none %}
+        <tr class="tabela-vazia"><td colspan="8">Use <strong>Buscar</strong> ou <strong>Todos</strong> para carregar os registros.</td></tr>
+      {% else %}
+        {% for p in registros %}
+        <tr>
+          <td>{{ p.id }}</td>
+          <td>{{ p.razao_social }}</td>
+          <td>{{ p.fantasia or '' }}</td>
+          <td data-valor="{{ p.documento or '' }}">{{ p.documento|documento }}</td>
+          <td>{{ p.email or '' }}</td>
+          <td>{{ p.telefone or '' }}</td>
+          <td><span class="badge text-bg-{{ 'success' if p.status == 'ATIVO' else 'secondary' }}">{{ p.status }}</span></td>
+          <td class="acoes">
+            {% with url_base='/pessoas/' ~ cfg.slug, registro=p, nome=p.razao_social %}{% include "_acoes.html" %}{% endwith %}
+          </td>
+        </tr>
+        {% else %}
+        <tr class="tabela-vazia"><td colspan="8">Nenhum {{ cfg.singular|lower }} encontrado.</td></tr>
+        {% endfor %}
+      {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="text-center">
+  <a href="/pessoas/{{ cfg.slug }}/novo" class="btn btn-primary btn-lg"><i class="bi bi-plus-lg"></i> Inserir Novo {{ cfg.singular }}</a>
+</div>
+{% endblock %}

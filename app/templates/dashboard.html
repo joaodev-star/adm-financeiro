@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block titulo %}Dashboard{% endblock %}
+{% block conteudo %}
+<h1 class="titulo-pagina">Dashboard</h1>
+
+<div class="card versao-card">
+  <div class="card-header"><i class="bi bi-github"></i> Código da última atualização no GitHub</div>
+  <div class="card-body d-flex flex-wrap align-items-center gap-4">
+    <div>
+      <div class="text-muted small">Commit</div>
+      {% if versao.url %}
+        <a href="{{ versao.url }}" target="_blank" rel="noopener" class="text-decoration-none"><code class="versao-sha">{{ versao.sha_curto }}</code></a>
+      {% else %}
+        <code class="versao-sha">{{ versao.sha_curto }}</code>
+      {% endif %}
+    </div>
+    {% if versao.data_br %}
+    <div><div class="text-muted small">Data</div><strong>{{ versao.data_br }}</strong></div>
+    {% endif %}
+    {% if versao.mensagem %}
+    <div class="flex-grow-1"><div class="text-muted small">Mensagem</div>{{ versao.mensagem }}</div>
+    {% endif %}
+    {% if versao.sha %}
+    <div class="w-100 small text-muted">Hash completo: <span class="font-monospace">{{ versao.sha }}</span> · fonte: {{ versao.fonte }}</div>
+    {% else %}
+    <div class="w-100 small text-muted">Configure a variável <code>GITHUB_REPO</code> (usuario/repositorio) para exibir o commit.</div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  {% set cards = [
+    ('Fornecedores', resumo.fornecedores, 'bi-truck', '/pessoas/fornecedor?acao=todos', 'primary'),
+    ('Clientes', resumo.clientes, 'bi-people', '/pessoas/cliente?acao=todos', 'info'),
+    ('Faturados', resumo.faturados, 'bi-person-vcard', '/pessoas/faturado?acao=todos', 'secondary'),
+    ('Tipos de Despesa', resumo.despesas, 'bi-arrow-down-circle', '/classificacao/despesa?acao=todos', 'danger'),
+    ('Tipos de Receita', resumo.receitas, 'bi-arrow-up-circle', '/classificacao/receita?acao=todos', 'success'),
+  ] %}
+  {% for titulo, valor, icone, url, cor in cards %}
+  <div class="col-6 col-lg">
+    <a href="{{ url }}" class="card text-decoration-none h-100 mb-0">
+      <div class="card-body">
+        <div class="text-muted small"><i class="bi {{ icone }} text-{{ cor }}"></i> {{ titulo }}</div>
+        <div class="fs-3 fw-semibold text-dark">{{ valor }}</div>
+      </div>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="row g-3 mb-2">
+  <div class="col-md-6">
+    <div class="card h-100 mb-0"><div class="card-body">
+      <div class="text-muted small"><i class="bi bi-cash-coin text-danger"></i> Total em aberto — Contas a Pagar</div>
+      <div class="fs-3 fw-semibold text-danger">{{ resumo.a_pagar|moeda }}</div>
+    </div></div>
+  </div>
+  <div class="col-md-6">
+    <div class="card h-100 mb-0"><div class="card-body">
+      <div class="text-muted small"><i class="bi bi-wallet2 text-success"></i> Total em aberto — Contas a Receber</div>
+      <div class="fs-3 fw-semibold text-success">{{ resumo.a_receber|moeda }}</div>
+    </div></div>
+  </div>
+</div>
+
+<div class="card mt-4">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span>Últimos lançamentos</span>
+    <a href="/notas" class="btn btn-primary btn-sm"><i class="bi bi-file-earmark-arrow-up"></i> Lançar nota fiscal</a>
+  </div>
+  <div class="card-body">
+    <table class="table table-hover align-middle mb-0">
+      <thead><tr><th>ID</th><th>Tipo</th><th>Nota</th><th>Pessoa</th><th>Emissão</th><th>Origem</th><th class="text-end">Valor</th></tr></thead>
+      <tbody>
+      {% for m in ultimos %}
+        {% set slug = 'pagar' if m.tipo == 'APAGAR' else 'receber' %}
+        <tr>
+          <td><a href="/contas/{{ slug }}/{{ m.id }}">{{ m.id }}</a></td>
+          <td>{{ 'A PAGAR' if m.tipo == 'APAGAR' else 'A RECEBER' }}</td>
+          <td>{{ m.numero_nota_fiscal or '-' }}</td>
+          <td>{{ m.pessoa.razao_social }}</td>
+          <td>{{ m.data_emissao|data_br }}</td>
+          <td><span class="badge text-bg-{{ 'info' if m.origem == 'NOTA_FISCAL' else 'light' }}">{{ m.origem.replace('_', ' ') }}</span></td>
+          <td class="text-end">{{ m.valor_total|moeda }}</td>
+        </tr>
+      {% else %}
+        <tr class="tabela-vazia"><td colspan="7">Nenhum lançamento ainda.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
